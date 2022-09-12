@@ -1,0 +1,95 @@
+Sub Export_All_Pages_As_Graphic()
+
+'Created 16 August 2022  Kenneth Inot
+'The doc and datasource must already been merged or published
+'If you get an error on line  'TotalPages = .DataSource.RecordCount', the solution is to connect to the datasource which is the step 3 (Create recipient list). UPDATE Have inserted
+' codes to check if datasource is connected
+'The location of Publisher publication file is where the output are to be written.
+'TIPS:  If you get this error                             Solution
+'       Hard disk is full                          Save the new publication. Close Publisher. Open the new publication, don't need to open the originating document
+
+'Ask whether to proceed or not
+BtnPress = MsgBox("Save all pages as individual pictures?", vbOKCancel)
+
+'If they pressed OK then proceed, otherwise do nothing.
+If BtnPress = 1 Then
+
+    'Make sure two-page spread is set to FALSE, otherwise it might
+    'export the two pages as one picture, instead of individually.
+    'NOTE: This may not be necessary, but just in case!
+    
+    Dim singleDoc As Document
+        
+    'Check connnection to datasource
+    Dim strDataSource As String
+    Dim strDataSourceTable As String
+ 
+    Set singleDoc = ActiveDocument
+    'Specify data source and table name
+    strDataSource = "C:\Users\Francisco\Desktop\60th bday\Cards\contacts.xlsx"
+    'The sheet name must have the $ at the end to make it work
+    strDataSourceTable = "Invite$"
+ 
+    'Connect to a datasource
+    If Not (ActiveDocument.IsDataSourceConnected) Then
+        ActiveDocument.MailMerge.OpenDataSource strDataSource, , strDataSourceTable, , True
+    End If
+
+    Set masterDoc = ActiveDocument
+    
+    masterDoc.ViewTwoPageSpread = False
+    
+    'How many total pages in document?
+    With ActiveDocument.MailMerge
+         TotalPages = .DataSource.RecordCount
+    
+        'Loop thru all pages one at a time
+        For PgCnt = 1 To TotalPages
+        
+          'When you convert integer to string it adds a space in front, so need to remove the leading space
+          PgNumber = Str(PgCnt)
+          PgLen = Len(PgNumber)
+          PgNumber = Right(PgNumber, PgLen - 1)
+        
+          'All names are three characters with leading zeros like 002.png 014.png 123.png
+          If PgCnt < 10 Then
+             PgFilename = "00" + PgNumber
+          ElseIf PgCnt < 100 Then
+             PgFilename = "0" + PgNumber
+          Else
+             PgFilename = PgNumber
+          End If
+        
+          With .DataSource
+            .ActiveRecord = PgCnt
+            .FirstRecord = PgCnt
+            .LastRecord = PgCnt
+          
+        
+             Dim afirst As MailMergeDataField
+             
+             Set afirst = .DataFields.Item("Names")
+             PgFilename = afirst.Value
+                   
+          End With
+         
+               
+          'Add the appropriate fileformat extension. You can use .png and .jpg for sure. There may be others, but did not test any.
+          If PgFilename <> "" Then
+             PgFilename = PgFilename + ".png"
+   
+             'Save the page
+             Set TargetDoc = ActiveDocument
+          
+             TargetDoc.Pages(PgCnt).SaveAsPicture (PgFilename)
+          End If
+    Next PgCnt
+   End With
+    'Tell them you are done and how many pages were saved
+    MsgBox "DONE! Saved" + Str(TotalPages) + " pages."
+
+End If
+
+End Sub
+
+
