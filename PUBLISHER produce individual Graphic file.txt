@@ -8,6 +8,8 @@ Sub Export_All_Pages_As_Graphic()
 'TIPS:  If you get this error                             Solution
 '       Hard disk is full                          Save the new publication. Close Publisher. Open the new publication, don't need to open the originating document
 
+'Note: Specify the column where to get the name for the output file (.png). Example, the column "Names" is used and is coded in line 72 ( Set afirst = '.DataFields.Item("Names"))
+
 'Ask whether to proceed or not
 BtnPress = MsgBox("Save all pages as individual pictures?", vbOKCancel)
 
